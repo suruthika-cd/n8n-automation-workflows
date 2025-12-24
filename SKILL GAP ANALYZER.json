@@ -1,0 +1,793 @@
+{
+  "name": "SKILL GAP ANALYZER",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        -656
+      ],
+      "id": "4e93b996-0035-4bc8-bec2-793ccbb0e589",
+      "name": "Webhook",
+      "webhookId": "6a5fda99-cf40-479d-94f2-59045df87ecf",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.body.message.chat.id}}\n\n",
+        "text": "👋 Hi! Welcome to SkillMatch AI 🤖  We are hiring for: Role: AI / ML Intern  Required Skills: • Python • SQL • Machine Learning • NLP  Please send a brief about your skills or resume text.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        -720
+      ],
+      "id": "018b97b1-7a71-466d-9df0-2299ba0cda5e",
+      "name": "Send a text message",
+      "webhookId": "c7138db8-e89b-4e65-9fd9-639b22055861",
+      "credentials": {
+        "telegramApi": {
+          "id": "KO6ZUkQUhSTjA9aX",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1KoRQttZbz8pjn1YUz9T75t4F9E3wuQqGDGVMqsSscjo",
+          "mode": "list",
+          "cachedResultName": "ATS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KoRQttZbz8pjn1YUz9T75t4F9E3wuQqGDGVMqsSscjo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 112729345,
+          "mode": "list",
+          "cachedResultName": "Form responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KoRQttZbz8pjn1YUz9T75t4F9E3wuQqGDGVMqsSscjo/edit#gid=112729345"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ],
+      "id": "01160630-1063-4728-a6f2-ba0eec469132",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "FsWT5vlhe9og95FV",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resumeText = items[0].json.text.toLowerCase();\n\nconst skills = [\n  'python',\n  'machine learning',\n  'data science',\n  'nlp'\n  \n];\n\nlet matched = skills.filter(skill => resumeText.includes(skill));\n\nconst score = Math.round((matched.length / skills.length) * 100);\n\nreturn [{\n  json: {\n    ats_score: score,\n    matched_skills: matched,\n    missing_skills: skills.filter(s => !matched.includes(s))\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        480
+      ],
+      "id": "3651f09b-5a7b-44d5-ab76-320057a246e8",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json[\"Upload Your Resume (PDF Only)\"].split(\"id=\")[1] }}\n",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        480
+      ],
+      "id": "95e42d31-653a-4946-821e-497d8a6dd0c3",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Qbl60me3QQnhnlZc",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        480
+      ],
+      "id": "7d2b2b13-b6d0-4307-8dd6-0571440cde5e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "21d534cf-06b5-43df-8ff5-674f79d1a5c7",
+              "leftValue": "={{ $('Code in JavaScript1').item.json.ats_score }}",
+              "rightValue": 90,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        480
+      ],
+      "id": "fd343fbb-50cd-48ac-aa46-354cdf2b3837",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "suruthikachidhambararaj@gmail.com",
+        "subject": "Shortlisted Candidate – Resume for Review",
+        "emailType": "text",
+        "message": "=Dear HR Team,  Please find attached the resume of Suruthika C D, who has been shortlisted based on our ATS screening (Score: {{ $('Code in JavaScript1').item.json.ats_score }} ).  {{ $('Download file').item.json['Upload Your Resume (PDF Only)'] }}\nKindly review the profile and let us know the next steps for the interview process.  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        384
+      ],
+      "id": "21c331b0-5a4b-4f17-a1c2-223d31fa7caf",
+      "name": "Send a message",
+      "webhookId": "28e0a3e0-afd2-4466-b89c-100df879d973",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUnpjria2AZFrwnD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json['Email Address'] }}",
+        "subject": "Application Status Update",
+        "emailType": "text",
+        "message": "Dear Suruthika,  Thank you for applying to our organization.  We are pleased to inform you that your profile has been successfully shortlisted based on our initial screening. Our HR team will review your application and contact you shortly regarding the next steps in the hiring process.  We appreciate your interest and wish you all the best.  Best regards, HR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        384
+      ],
+      "id": "e1218730-4d9f-4cef-bbf7-7bbeae2d83c8",
+      "name": "Send a message1",
+      "webhookId": "347a99bf-a032-4a0c-abfa-fbab20451bd7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUnpjria2AZFrwnD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json['Email Address'] }}",
+        "subject": "Regarding Your Job Application",
+        "emailType": "text",
+        "message": "Dear Suruthika,  Thank you for taking the time to apply for the position.  After careful review, we regret to inform you that your profile was not shortlisted at this stage. However, we encourage you to continue improving your skills and apply again in the future.   Wishing you success in your career journey.  Best regards, HR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        576
+      ],
+      "id": "f4cf4fec-c5d0-457f-b554-2e879341fe7e",
+      "name": "Send a message2",
+      "webhookId": "94c84b20-c925-4c48-b7a0-f9f1c3b4c669",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WUnpjria2AZFrwnD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "a444a176-1a4a-49bc-a7fe-03bc1f24f73b",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        -784
+      ],
+      "id": "e6848e53-e0ed-4cfa-9073-ebaf44c3bd1f",
+      "name": "Webhook1",
+      "webhookId": "a444a176-1a4a-49bc-a7fe-03bc1f24f73b",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.body.message.chat.id}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        -816
+      ],
+      "id": "2d533791-14ca-4952-acf8-bc0586aa52fc",
+      "name": "Send a text message1",
+      "webhookId": "6a0008de-0d93-471e-a8f5-3fd82577d920",
+      "credentials": {
+        "telegramApi": {
+          "id": "KO6ZUkQUhSTjA9aX",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "690b3770-1d12-4095-a9e0-672187b093fa",
+              "leftValue": "={{$json.body.message.text.toLowerCase()}}",
+              "rightValue": "HELP",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        -960
+      ],
+      "id": "b0995153-5405-42b6-8efc-69a00754f019",
+      "name": "If2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a friendly, supportive personal career assistant for users interacting via a Telegram bot.\n\nYour goal:\n- Help users with general career guidance, motivation, and clarity\n- Respond naturally based on the user’s message and emotional tone\n- Encourage growth, consistency, and self-belief\n\nHow you should behave:\n- Be polite, calm, and positive\n- Sound human, not robotic\n- Keep replies short to medium length\n- Use simple language (no heavy jargon)\n- Be empathetic if the user feels confused, stressed, or demotivated\n\nWhat to do:\n- If the user asks for career advice → give 2–3 practical, actionable tips\n- If the user feels lost or confused → reassure them and suggest next small steps\n- If the user asks “what should I do?” → guide them with clarity, not pressure\n- If the user asks about skills → suggest learning paths and habits\n- If the user is demotivated → motivate gently, without fake hype\n\nWhat NOT to do:\n- Do NOT judge the user\n- Do NOT mention ATS scores, rejection, or comparisons\n- Do NOT give false promises\n- Do NOT overload with too many steps\n\nTone:\nSupportive, encouraging, confident, and friendly — like a mentor who genuinely cares.\n\nEnd every response with:\n- A motivating line, encouragement, or positive reinforcement.\n"
+            },
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        -704
+      ],
+      "id": "adec77a1-4116-4279-ad6d-5d0e3ad5dcad",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "7d4TMACR5vEpoh15",
+          "name": "n8n free OpenAI API credits"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "height": 96,
+        "width": 608
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        224
+      ],
+      "id": "277907a2-0a89-4f52-b7e6-9a6456e67ba5",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        160
+      ],
+      "id": "baf4a987-247c-4b52-89b6-5e0e61e8a8b6",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        160
+      ],
+      "id": "26293b34-96b4-411b-83fd-d1dded806aa3",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "height": 288,
+        "width": 816
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        32
+      ],
+      "id": "99fb5168-853a-4a73-8f96-d54af35195b8",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -976
+      ],
+      "id": "30d8e87b-62d1-42b7-9e9a-f10f2e801117",
+      "name": "Webhook2",
+      "webhookId": "a8a9cb38-7d53-4a00-929c-4bcb6ebb2973"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text =\n  $json.body.message?.text?.toLowerCase() || \"\";\n\nlet intent = \"ai\";\nlet reply = \"\";\n\nif ([\"hi\", \"hello\", \"start\"].some(w => text.includes(w))) {\n  intent = \"static\";\n  reply = \"👋 Hi! We are from ABC Agency. How can we help you today?\";\n}\n\nelse if (text.includes(\"job\")) {\n  intent = \"static\";\n  reply =\n    \"📢 *Current Job Openings:*\\n\" +\n    \"• AI / ML Intern\\n\" +\n    \"• Data Analyst Intern\\n\" +\n    \"• Python Developer (Fresher)\\n\\n\" +\n    \"📄 Upload your resume here:\\n\" +\n   \"https://forms.gle/JX3NYLmGNvLRKba29\"\n}\n\nelse if (text.includes(\"help\")) {\n  intent = \"ai\";\n}\n\nreturn [{ json: { intent, reply, user_text: text } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -976
+      ],
+      "id": "735bf5c2-8fa7-4edc-b6cd-f7e3b88582f8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Webhook2').item.json.body.message.from.id }}",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -1072
+      ],
+      "id": "17c736b0-3f5f-4fcc-9501-055a0c91b3b6",
+      "name": "Send message and wait for response",
+      "webhookId": "87ed790f-7151-4f99-b507-26a7806a25b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "KO6ZUkQUhSTjA9aX",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6566bac4-c050-4301-9614-ca48e625da48",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "static",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        -1008
+      ],
+      "id": "85baafa9-6795-4186-aa20-4637ab4a9a41",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a professional career assistant chatbot for ABC Agency on Telegram.\n\nIMPORTANT: Always identify the user’s INTENT before responding.\nJob and application-related questions must take priority over greetings.\n\nFollow these rules in ORDER:\n\n1. FIRST PRIORITY — Job / Vacancy / Application:\nIf the user message contains anything related to:\njob, jobs, vacancy, vaccancy, vacancies, opening, openings,\napply, application, how to apply\n\nThen:\n- Explain current job vacancies clearly\n- Guide the user on how to apply\n- Share this Google Form link:\nhttps://forms.gle/JX3NYLmGNvLRKba29\n\n2. SECOND PRIORITY — Career Help / Guidance:\nIf the user asks for help, guidance, feels confused, stressed, or unsure:\n- Act like a personal career mentor\n- Give general career advice and motivation\n- Suggest practical next steps\n\n3. THIRD PRIORITY — Greeting:\nIf the user ONLY greets (hi, hello, hey, start):\n- Greet warmly\n- Give 1–2 short career tips or motivation\n- Ask how you can help\n\n4. OTHERWISE:\n- Answer the user’s question directly\n- If unclear, ask a short clarifying question\n\nTone:\n- Friendly, professional, human-like\n- Short, clear Telegram-style replies\n- No ATS mention\n- No unnecessary repetition\n\nAlways follow this priority strictly.\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        -1184
+      ],
+      "id": "abd2001a-dced-41c0-90fa-a36bb1f8b02c",
+      "name": "Message a model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "7d4TMACR5vEpoh15",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Webhook2').item.json.body.message.from.id }}",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        -976
+      ],
+      "id": "961fd6bd-0eaf-4def-92f0-1907ff5de1f2",
+      "name": "Send message and wait for response1",
+      "webhookId": "c3e799f5-bc8d-4949-a9ea-6eae3775e5bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "KO6ZUkQUhSTjA9aX",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a friendly, supportive career assistant chatbot for a company, interacting with users via Telegram.\n2. If the user asks a specific question (any topic):\n   - Answer the question clearly and directly.\n   - Keep the tone friendly and professional.\n   - Avoid unnecessary career advice unless relevant.\n\n3. If the user asks for help or guidance:\n   - Provide personalized career guidance.\n   - Suggest skills, learning paths, or next steps.\n   - Be practical, simple, and encouraging.\n\n4. Always:\n   - Be polite, calm, and supportive.\n   - Avoid long paragraphs; keep replies concise.\n   - Act like a real human career mentor, not a generic AI.\n\nDo NOT mention ATS scores unless explicitly asked.\nDo NOT ask too many questions at once."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        -944
+      ],
+      "id": "9b00a53c-c180-445c-b5cf-3d560cf58f5d",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "7d4TMACR5vEpoh15",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be5d7af7-8f29-43e9-8113-30a4f74e5409",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "690db5a706e1342613b24418d962f49d8627c862c4ae74deace93eb01a873bf1"
+  },
+  "id": "AWTyZGQA5m7Yzkdg",
+  "tags": []
+}
