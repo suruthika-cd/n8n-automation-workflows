@@ -27,12 +27,7 @@ logic (IF / ELSE), and integrations** for real-world use cases.
 
 ---
 
-### 💬 Chatbot Logic Flow
-- User sends a message (e.g., "Hi", "Help")
-- IF / ELSE logic determines intent
-- Appropriate automated response is triggered
 
----
 
 ## 🛠 Tools & Technologies
 - n8n
